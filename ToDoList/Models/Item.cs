@@ -19,30 +19,67 @@ namespace ToDoList.Models
             Id = id;
         }
 
-        public static Item Find(int searchId)
+        public static Item Find(int id)
         {
-            Item placeholderItem = new Item("placeholder item");
-            return placeholderItem;
+            //pass a string, connect, conn
+            MySqlConnection conn = new MySqlConnection(DBConfiguration.ConnectionString);
+            conn.Open();
+            //run the command cmd
+            MySqlCommand cmd = conn.CreateCommand() as MySqlCommand;
+            cmd.CommandText = "SELECT * FROM items WHERE id = @ThisId"; //find using sql
+
+            // We have to use parameter placeholders @ThisId and a `MySqlParameter` object to 
+            // prevent SQL injection attacks. 
+            // This is only necessary when we are passing parameters into a query. 
+            // We also did this with our Save() method.
+            MySqlParameter param = new MySqlParameter();
+            param.ParameterName = "@ThisId";
+            param.Value = id;
+            cmd.Parameters.Add(param);
+
+            // We use the ExecuteReader() method because our query will be returning results and 
+            // we need this method to read these results. 
+            // This is in contrast to the ExecuteNonQuery() method, which 
+            // we use for SQL commands that don't return results like our Save() method.
+
+
+            MySqlDataReader rdr = cmd.ExecuteReader() as MySqlDataReader;
+            int itemId = 0;
+            string itemDescription = "";
+            while (rdr.Read())
+            {
+                itemId = rdr.GetInt32(0);
+                itemDescription = rdr.GetString(1);
+            }
+            Item foundItem = new Item(itemDescription, itemId);
+
+            conn.Close();
+            if (conn != null)
+            {
+                conn.Dispose();
+            }
+            return foundItem;
         }
+
 
         public override bool Equals(System.Object otherItem)
         {
-          if (!(otherItem is Item))
-          {
-            return false;
-          }
-          else 
-          {
-            Item newItem = (Item) otherItem;
-            bool idEquality = (this.Id == newItem.Id);
-            bool descriptionEquality = (this.Description == newItem.Description);
-            return (idEquality && descriptionEquality);
-          }
+            if (!(otherItem is Item))
+            {
+                return false;
+            }
+            else
+            {
+                Item newItem = (Item)otherItem;
+                bool idEquality = (this.Id == newItem.Id);
+                bool descriptionEquality = (this.Description == newItem.Description);
+                return (idEquality && descriptionEquality);
+            }
         }
 
         public override int GetHashCode()
         {
-          return Id.GetHashCode();
+            return Id.GetHashCode();
         }
 
         public static void ClearAll()
@@ -89,22 +126,23 @@ namespace ToDoList.Models
 
         public void Save()
         {
-          MySqlConnection conn = new MySqlConnection(DBConfiguration.ConnectionString);
-          conn.Open();
+            MySqlConnection conn = new MySqlConnection(DBConfiguration.ConnectionString);
+            conn.Open();
 
-          MySqlCommand cmd = conn.CreateCommand() as MySqlCommand;
+            MySqlCommand cmd = conn.CreateCommand() as MySqlCommand;
 
-          cmd.CommandText = "INSERT INTO items (description) VALUES (@ItemDescription);";
-          MySqlParameter param = new MySqlParameter();
-          param.ParameterName = "@ItemDescription";
-          param.Value = this.Description;
-          cmd.Parameters.Add(param);
+            cmd.CommandText = "INSERT INTO items (description) VALUES (@ItemDescription);";
+            MySqlParameter param = new MySqlParameter();
+            param.ParameterName = "@ItemDescription";
+            param.Value = this.Description;
+            cmd.Parameters.Add(param);
 
-          cmd.ExecuteNonQuery();
-          Id = (int) cmd.LastInsertedId;
+            cmd.ExecuteNonQuery();
+            Id = (int)cmd.LastInsertedId;
 
         }
 
+  
 
 
         // public Item(string description)

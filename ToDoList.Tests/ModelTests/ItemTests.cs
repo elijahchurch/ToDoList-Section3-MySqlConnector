@@ -61,16 +61,31 @@ namespace ToDoList.Tests
         [TestMethod]
         public void GetAll_ReturnItems_ItemList()
         {
-          string description01 = "Walk the dog";
-          string description02 = "Wash the dishes";
-          Item newItem = new Item(description01);
-          newItem.Save();
-          Item newItem2 = new Item(description02);
-          newItem2.Save();
-          List<Item> newList = new List<Item> {newItem, newItem2};
-          List<Item> result = Item.GetAll();
-          CollectionAssert.AreEqual(newList, result);
+            string description01 = "Walk the dog";
+            string description02 = "Wash the dishes";
+            Item newItem = new Item(description01);
+            newItem.Save();
+            Item newItem2 = new Item(description02);
+            newItem2.Save();
+            List<Item> newList = new List<Item> { newItem, newItem2 };
+            List<Item> result = Item.GetAll();
+            CollectionAssert.AreEqual(newList, result);
 
+        }
+
+        [TestMethod]
+        public void Find_ReturnsCorrectItemFromDatabase_Item()
+        {
+            //Arrange
+            Item newItem = new Item("Mow the lawn");
+            newItem.Save();
+            Item newItem2 = new Item("Wash dishes");
+            newItem2.Save();
+
+            //Act
+            Item foundItem = Item.Find(newItem.Id);
+            //Assert
+            Assert.AreEqual(newItem, foundItem);
         }
         // [TestMethod]
         // public void ItemConstructor_CreatesInstanceOfItem_Item()
